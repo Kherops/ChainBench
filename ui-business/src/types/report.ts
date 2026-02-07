@@ -168,12 +168,37 @@ const ImpactSchema = z.object({
   outputs: ImpactOutputsSchema,
 })
 
+const ResourceProfileSummarySchema = z.object({
+  cpu_avg: z.number(),
+  cpu_max: z.number(),
+  ram_avg_mb: z.number(),
+  ram_max_mb: z.number(),
+  io_total_mb: z.number(),
+  gpu_avg: z.number(),
+  duration_ms: z.number(),
+  sample_count: z.number().optional(),
+})
+
+const ResourceProfileCurveSchema = z.object({
+  timestamps: z.array(z.number()),
+  cpu: z.array(z.number()),
+  ram: z.array(z.number()),
+  io: z.array(z.number()),
+  gpu: z.array(z.number()),
+})
+
+const ResourceProfileSchema = z.object({
+  summary: ResourceProfileSummarySchema,
+  curve: ResourceProfileCurveSchema,
+})
+
 const ArtifactsSchema = z.object({
   results_csv: z.string().optional(),
   summary_json: z.string().optional(),
   logs: z.array(z.string()).optional(),
   prometheus_url: z.string().optional(),
   grafana_url: z.string().optional(),
+  resource_profile: ResourceProfileSchema.optional(),
 })
 
 export const ReportSchema = z.object({
@@ -185,6 +210,7 @@ export const ReportSchema = z.object({
   evidence: EvidenceSchema,
   impact: ImpactSchema,
   artifacts: ArtifactsSchema.optional(),
+  resource_profiles: z.record(ResourceProfileSchema).optional(),
 })
 
 export type Report = z.infer<typeof ReportSchema>

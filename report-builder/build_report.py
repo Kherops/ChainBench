@@ -131,7 +131,8 @@ def build_report(
     baseline_impl: str,
     baseline_variant: str,
     optimized_impl: str,
-    optimized_variant: str
+    optimized_variant: str,
+    resource_profiles: Optional[Dict] = None
 ) -> Dict:
     
     baseline_samples = runner_summary.get('baseline_samples', [])
@@ -240,6 +241,10 @@ def build_report(
         }
     }
     
+    # Add resource profiles if available
+    if resource_profiles:
+        report['resource_profiles'] = resource_profiles
+    
     return report
 
 
@@ -269,6 +274,10 @@ def main():
     metadata = load_metadata(args.metadata)
     
     print("Building report...")
+    
+    # Extract resource profiles from runner summary
+    resource_profiles = runner_summary.get('resource_profiles', {})
+    
     report = build_report(
         runner_summary,
         ebpf_evidence,
@@ -277,7 +286,8 @@ def main():
         args.baseline_impl,
         args.baseline_variant,
         args.optimized_impl,
-        args.optimized_variant
+        args.optimized_variant,
+        resource_profiles
     )
     
     print(f"Writing report to {args.output}")

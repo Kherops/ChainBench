@@ -17,6 +17,13 @@ from pathlib import Path
 from typing import Dict, List, Optional
 import statistics
 
+try:
+    from profiler import ResourceProfiler
+    PROFILER_AVAILABLE = True
+except ImportError:
+    PROFILER_AVAILABLE = False
+    print("Warning: Resource profiler not available (psutil not installed)")
+
 
 def check_stability(timeout: int = 60, mode: str = 'wait') -> float:
     """
@@ -71,13 +78,14 @@ def run_benchmark_impl(
     runs: int,
     repeat: int,
     cpu_affinity: Optional[int],
-    enforce_single_thread: bool
-) -> List[float]:
+    enforce_single_thread: bool,
+    enable_profiling: bool = True
+) -> tuple[List[float], Optional[Dict]]:
     """
     Run a single benchmark implementation.
     
     Returns:
-        List[float]: Sample durations in milliseconds
+        Tuple of (samples, profile_data)
     """
     print(f"\nRunning {impl}/{variant}...")
     
@@ -93,6 +101,7 @@ def run_benchmark_impl(
         })
     
     samples = []
+    all_profile_samples = []
     
     # Warmup runs
     print(f"  Warmup: {warmup} runs...")
@@ -103,6 +112,13 @@ def run_benchmark_impl(
     
     # Measurement runs
     print(f"  Measurement: {runs} runs x {repeat} repeats...")
+    
+    # Start profiler if available
+    profiler = None
+    if enable_profiling and PROFILER_AVAILABLE:
+        profiler = ResourceProfiler(sample_interval=0.05)
+        profiler.start()
+    
     for run in range(runs):
         # Simulate benchmark - in production, this would call the actual implementation
         # For baseline (naive), slightly slower
@@ -121,22 +137,35 @@ def run_benchmark_impl(
         if (run + 1) % 10 == 0:
             print(f"    Progress: {run+1}/{runs} runs")
     
+    # Stop profiler and get data
+    profile_data = None
+    if profiler:
+        profile_samples = profiler.stop()
+        profile_data = {
+            'summary': profiler.get_summary(),
+            'curve': profiler.get_profile_curve(points=100)
+        }
+    
     median = statistics.median(samples)
     std = statistics.stdev(samples) if len(samples) > 1 else 0
     cv_pct = (std / median * 100) if median > 0 else 0
     
     print(f"  ✓ Complete: median={median:.1f}ms, std={std:.1f}ms, CV={cv_pct:.2f}%")
+    if profile_data:
+        summary = profile_data['summary']
+        print(f"    Resources: CPU={summary['cpu_avg']:.1f}%, RAM={summary['ram_avg_mb']:.1f}MB, I/O={summary['io_total_mb']:.1f}MB")
     
-    return samples
+    return samples, profile_data
 
 
 def save_results(
     results: Dict[str, List[float]],
+    profiles: Dict[str, Dict],
     output_dir: str,
     metadata: Dict,
     config: Dict
 ):
-    """Save benchmark results to CSV and JSON."""
+    """Save benchmark results and profiles to CSV and JSON."""
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
     
@@ -172,6 +201,7 @@ def save_results(
         'stability_mode': config['stability_mode'],
         'waited_seconds': config.get('waited_seconds', 0),
         'cpu_affinity': config.get('cpu_affinity') or 2,
+        'resource_profiles': profiles
     }
     
     # Save summary to JSON
@@ -250,6 +280,7 @@ def main():
     
     # Run benchmarks
     results = {}
+    profiles = {}
     config = {
         'warmup': args.warmup,
         'runs': args.runs,
@@ -263,15 +294,18 @@ def main():
     }
     
     for impl, variant in impls:
-        samples = run_benchmark_impl(
+        samples, profile_data = run_benchmark_impl(
             impl, variant, metadata, str(data_dir),
             args.warmup, args.runs, args.repeat,
-            args.cpu_affinity, args.enforce_single_thread
+            args.cpu_affinity, args.enforce_single_thread,
+            enable_profiling=True
         )
         results[f"{impl}/{variant}"] = samples
+        if profile_data:
+            profiles[f"{impl}/{variant}"] = profile_data
     
     # Save results
-    save_results(results, args.output, metadata, config)
+    save_results(results, profiles, args.output, metadata, config)
     
     # Calculate and display gain
     if len(results) >= 2:

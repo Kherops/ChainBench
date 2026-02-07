@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import type { Report, ImpactInputs } from '@/types/report'
 import { calculateImpact } from '@/utils/calculations'
-import ExecutiveSummary from './ExecutiveSummary'
-import BeforeAfterChart from './BeforeAfterChart'
-import ImpactCards from './ImpactCards'
-import EvidenceSection from './EvidenceSection'
-import BenchmarkDetails from './BenchmarkDetails'
+import { ExecutiveSummary } from './ExecutiveSummary'
+import { BeforeAfterChart } from './BeforeAfterChart'
+import { ImpactCards } from './ImpactCards'
+import { EvidenceSection } from './EvidenceSection'
+import { BenchmarkDetails } from './BenchmarkDetails'
+import { ResourceProfilesSection } from './ResourceProfileChart'
 
 interface Props {
   report: Report
@@ -43,21 +44,21 @@ export default function ReportViewer({ report, onReset }: Props) {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        <ExecutiveSummary report={report} />
-        
-        <BeforeAfterChart report={report} />
-        
-        <ImpactCards
-          delta_ms={report.summary.delta_ms}
-          inputs={impactInputs}
-          outputs={recalculatedImpact}
-          onInputsChange={setImpactInputs}
-        />
-        
-        <EvidenceSection evidence={report.evidence} />
-        
-        <BenchmarkDetails report={report} />
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <div className="space-y-8">
+          <ExecutiveSummary report={report} />
+          <BeforeAfterChart report={report} />
+          {report.resource_profiles && (
+            <ResourceProfilesSection profiles={report.resource_profiles} />
+          )}
+          <ImpactCards
+            report={report}
+            impactInputs={impactInputs}
+            onImpactInputsChange={setImpactInputs}
+          />
+          <EvidenceSection report={report} />
+          <BenchmarkDetails report={report} />
+        </div>
       </main>
     </div>
   )
