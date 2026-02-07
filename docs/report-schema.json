@@ -1,0 +1,360 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ChainBench Report",
+  "description": "Single source of truth for ChainBench performance analysis",
+  "type": "object",
+  "required": ["schema_version", "meta", "benchmark", "runs", "summary", "evidence", "impact"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of report schema"
+    },
+    "meta": {
+      "type": "object",
+      "required": ["report_id", "generated_at", "app_version", "machine", "dataset"],
+      "properties": {
+        "report_id": {
+          "type": "string",
+          "description": "Unique identifier for this report"
+        },
+        "generated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp"
+        },
+        "app_version": {
+          "type": "string",
+          "description": "ChainBench version"
+        },
+        "git_commit": {
+          "type": "string",
+          "description": "Git commit hash of benchmark code"
+        },
+        "machine": {
+          "type": "object",
+          "required": ["hostname", "os", "kernel"],
+          "properties": {
+            "hostname": {"type": "string"},
+            "os": {"type": "string"},
+            "kernel": {"type": "string"},
+            "cpu_model": {"type": "string"},
+            "ram_total_gb": {"type": "number"}
+          }
+        },
+        "dataset": {
+          "type": "object",
+          "required": ["hash_sha256", "N", "M", "D", "seed"],
+          "properties": {
+            "hash_sha256": {"type": "string"},
+            "N": {"type": "integer"},
+            "M": {"type": "integer"},
+            "D": {"type": "integer"},
+            "seed": {"type": "integer"}
+          }
+        }
+      }
+    },
+    "benchmark": {
+      "type": "object",
+      "required": ["command_line", "warmup", "runs", "repeat", "stability", "single_thread", "impls"],
+      "properties": {
+        "command_line": {"type": "string"},
+        "warmup": {"type": "integer"},
+        "runs": {"type": "integer"},
+        "repeat": {"type": "integer"},
+        "stability": {
+          "type": "object",
+          "required": ["enabled", "mode"],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "mode": {"type": "string", "enum": ["wait", "skip", "fail"]},
+            "waited_seconds": {"type": "number"}
+          }
+        },
+        "single_thread": {
+          "type": "object",
+          "properties": {
+            "env_vars": {
+              "type": "object",
+              "additionalProperties": {"type": "string"}
+            }
+          }
+        },
+        "cpu_affinity": {"type": "integer"},
+        "impls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "variant"],
+            "properties": {
+              "name": {"type": "string"},
+              "variant": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "runs": {
+      "type": "object",
+      "required": ["baseline", "optimized"],
+      "properties": {
+        "baseline": {
+          "type": "object",
+          "required": ["impl", "variant", "samples", "status"],
+          "properties": {
+            "impl": {"type": "string"},
+            "variant": {"type": "string"},
+            "samples": {
+              "type": "array",
+              "items": {"type": "number"}
+            },
+            "status": {
+              "type": "array",
+              "items": {"type": "string", "enum": ["success", "fail"]}
+            },
+            "errors": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        },
+        "optimized": {
+          "type": "object",
+          "required": ["impl", "variant", "samples", "status"],
+          "properties": {
+            "impl": {"type": "string"},
+            "variant": {"type": "string"},
+            "samples": {
+              "type": "array",
+              "items": {"type": "number"}
+            },
+            "status": {
+              "type": "array",
+              "items": {"type": "string", "enum": ["success", "fail"]}
+            },
+            "errors": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["baseline_stats", "optimized_stats", "delta_ms", "gain_pct", "verdict"],
+      "properties": {
+        "baseline_stats": {
+          "type": "object",
+          "required": ["median", "mean", "std", "cv_pct", "p10", "p90"],
+          "properties": {
+            "median": {"type": "number"},
+            "mean": {"type": "number"},
+            "std": {"type": "number"},
+            "cv_pct": {"type": "number"},
+            "p10": {"type": "number"},
+            "p90": {"type": "number"}
+          }
+        },
+        "optimized_stats": {
+          "type": "object",
+          "required": ["median", "mean", "std", "cv_pct", "p10", "p90"],
+          "properties": {
+            "median": {"type": "number"},
+            "mean": {"type": "number"},
+            "std": {"type": "number"},
+            "cv_pct": {"type": "number"},
+            "p10": {"type": "number"},
+            "p90": {"type": "number"}
+          }
+        },
+        "delta_ms": {"type": "number"},
+        "gain_pct": {"type": "number"},
+        "verdict": {
+          "type": "string",
+          "enum": ["conclusive", "inconclusive"]
+        },
+        "notes": {"type": "string"}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["available"],
+      "properties": {
+        "available": {"type": "boolean"},
+        "runqlat": {
+          "type": "object",
+          "properties": {
+            "baseline_hist": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "bucket_us": {"type": "number"},
+                  "count": {"type": "integer"}
+                }
+              }
+            },
+            "optimized_hist": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "bucket_us": {"type": "number"},
+                  "count": {"type": "integer"}
+                }
+              }
+            },
+            "p95_baseline_us": {"type": "number"},
+            "p95_optimized_us": {"type": "number"}
+          }
+        },
+        "biolatency": {
+          "type": "object",
+          "properties": {
+            "baseline_hist": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "bucket_us": {"type": "number"},
+                  "count": {"type": "integer"}
+                }
+              }
+            },
+            "optimized_hist": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "bucket_us": {"type": "number"},
+                  "count": {"type": "integer"}
+                }
+              }
+            },
+            "p95_baseline_us": {"type": "number"},
+            "p95_optimized_us": {"type": "number"}
+          }
+        },
+        "offcpu": {
+          "type": "object",
+          "properties": {
+            "baseline_total_ms": {"type": "number"},
+            "optimized_total_ms": {"type": "number"},
+            "baseline_top_reasons": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "reason": {"type": "string"},
+                  "ms": {"type": "number"}
+                }
+              }
+            },
+            "optimized_top_reasons": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "reason": {"type": "string"},
+                  "ms": {"type": "number"}
+                }
+              }
+            }
+          }
+        },
+        "exec": {
+          "type": "object",
+          "properties": {
+            "baseline_exec_count": {"type": "integer"},
+            "optimized_exec_count": {"type": "integer"},
+            "baseline_top_commands": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "command": {"type": "string"},
+                  "count": {"type": "integer"}
+                }
+              }
+            },
+            "optimized_top_commands": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "command": {"type": "string"},
+                  "count": {"type": "integer"}
+                }
+              }
+            }
+          }
+        },
+        "syscall_counts": {
+          "type": "object",
+          "properties": {
+            "baseline": {
+              "type": "object",
+              "properties": {
+                "futex": {"type": "integer"},
+                "fsync": {"type": "integer"},
+                "openat": {"type": "integer"},
+                "read": {"type": "integer"},
+                "write": {"type": "integer"}
+              }
+            },
+            "optimized": {
+              "type": "object",
+              "properties": {
+                "futex": {"type": "integer"},
+                "fsync": {"type": "integer"},
+                "openat": {"type": "integer"},
+                "read": {"type": "integer"},
+                "write": {"type": "integer"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "impact": {
+      "type": "object",
+      "required": ["inputs", "outputs"],
+      "properties": {
+        "inputs": {
+          "type": "object",
+          "required": ["executions_per_day", "days_per_year", "cost_model", "cost_per_hour_eur", "electricity_kwh_per_hour", "co2_kg_per_kwh"],
+          "properties": {
+            "executions_per_day": {"type": "number"},
+            "days_per_year": {"type": "number"},
+            "cost_model": {"type": "string", "enum": ["infra", "human"]},
+            "cost_per_hour_eur": {"type": "number"},
+            "electricity_kwh_per_hour": {"type": "number"},
+            "co2_kg_per_kwh": {"type": "number"}
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "required": ["time_saved_hours_per_year", "cost_saved_eur_per_year", "electricity_saved_kwh_per_year", "co2_avoided_kg_per_year"],
+          "properties": {
+            "time_saved_hours_per_year": {"type": "number"},
+            "cost_saved_eur_per_year": {"type": "number"},
+            "electricity_saved_kwh_per_year": {"type": "number"},
+            "co2_avoided_kg_per_year": {"type": "number"}
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "properties": {
+        "results_csv": {"type": "string"},
+        "summary_json": {"type": "string"},
+        "logs": {"type": "array", "items": {"type": "string"}},
+        "prometheus_url": {"type": "string"},
+        "grafana_url": {"type": "string"}
+      }
+    }
+  }
+}

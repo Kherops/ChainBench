@@ -1,0 +1,201 @@
+{
+  "schema_version": "1.0.0",
+  "meta": {
+    "report_id": "a3f2c8d9e1b4f7a2",
+    "generated_at": "2024-02-07T20:30:00Z",
+    "app_version": "1.0.0",
+    "git_commit": "abc123def456",
+    "machine": {
+      "hostname": "benchmark-server-01",
+      "os": "Linux",
+      "kernel": "6.5.0-15-generic",
+      "cpu_model": "Intel(R) Xeon(R) CPU E5-2680 v4",
+      "ram_total_gb": 64
+    },
+    "dataset": {
+      "hash_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "N": 2000,
+      "M": 15,
+      "D": 96,
+      "seed": 42
+    }
+  },
+  "benchmark": {
+    "command_line": "python runner/run_all.py --metadata data/metadata.json --warmup 5 --runs 30 --repeat 50 --stability-enable --stability-mode wait --enforce-single-thread --cpu-affinity 2 --impls python-naive,python-numpy",
+    "warmup": 5,
+    "runs": 30,
+    "repeat": 50,
+    "stability": {
+      "enabled": true,
+      "mode": "wait",
+      "waited_seconds": 12.5
+    },
+    "single_thread": {
+      "env_vars": {
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      }
+    },
+    "cpu_affinity": 2,
+    "impls": [
+      {"name": "python", "variant": "naive"},
+      {"name": "python", "variant": "numpy"}
+    ]
+  },
+  "runs": {
+    "baseline": {
+      "impl": "python",
+      "variant": "naive",
+      "samples": [1520, 1505, 1530, 1515, 1525, 1510, 1535, 1520, 1515, 1525, 1530, 1520, 1515, 1525, 1520, 1515, 1530, 1525, 1520, 1515, 1525, 1520, 1515, 1530, 1525, 1520, 1515, 1525, 1520, 1515],
+      "status": ["success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success"],
+      "errors": []
+    },
+    "optimized": {
+      "impl": "python",
+      "variant": "numpy",
+      "samples": [1210, 1205, 1220, 1215, 1210, 1205, 1225, 1210, 1215, 1210, 1220, 1215, 1210, 1215, 1210, 1205, 1220, 1215, 1210, 1215, 1210, 1205, 1220, 1215, 1210, 1215, 1210, 1215, 1210, 1205],
+      "status": ["success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success", "success"],
+      "errors": []
+    }
+  },
+  "summary": {
+    "baseline_stats": {
+      "median": 1520.0,
+      "mean": 1521.0,
+      "std": 7.8,
+      "cv_pct": 0.51,
+      "p10": 1510.0,
+      "p90": 1530.0
+    },
+    "optimized_stats": {
+      "median": 1212.5,
+      "mean": 1212.3,
+      "std": 5.9,
+      "cv_pct": 0.49,
+      "p10": 1205.0,
+      "p90": 1220.0
+    },
+    "delta_ms": 307.5,
+    "gain_pct": 20.23,
+    "verdict": "conclusive",
+    "notes": "Gain measured at environment constant (same machine). Low CV% indicates stable measurements."
+  },
+  "evidence": {
+    "available": true,
+    "runqlat": {
+      "baseline_hist": [
+        {"bucket_us": 1, "count": 150},
+        {"bucket_us": 2, "count": 320},
+        {"bucket_us": 4, "count": 280},
+        {"bucket_us": 8, "count": 180},
+        {"bucket_us": 16, "count": 90},
+        {"bucket_us": 32, "count": 45},
+        {"bucket_us": 64, "count": 20},
+        {"bucket_us": 128, "count": 8}
+      ],
+      "optimized_hist": [
+        {"bucket_us": 1, "count": 200},
+        {"bucket_us": 2, "count": 380},
+        {"bucket_us": 4, "count": 250},
+        {"bucket_us": 8, "count": 120},
+        {"bucket_us": 16, "count": 50},
+        {"bucket_us": 32, "count": 20},
+        {"bucket_us": 64, "count": 8},
+        {"bucket_us": 128, "count": 2}
+      ],
+      "p95_baseline_us": 45.0,
+      "p95_optimized_us": 28.0
+    },
+    "biolatency": {
+      "baseline_hist": [
+        {"bucket_us": 64, "count": 45},
+        {"bucket_us": 128, "count": 120},
+        {"bucket_us": 256, "count": 85},
+        {"bucket_us": 512, "count": 40},
+        {"bucket_us": 1024, "count": 15}
+      ],
+      "optimized_hist": [
+        {"bucket_us": 64, "count": 60},
+        {"bucket_us": 128, "count": 140},
+        {"bucket_us": 256, "count": 70},
+        {"bucket_us": 512, "count": 25},
+        {"bucket_us": 1024, "count": 8}
+      ],
+      "p95_baseline_us": 680.0,
+      "p95_optimized_us": 520.0
+    },
+    "offcpu": {
+      "baseline_total_ms": 1250.0,
+      "optimized_total_ms": 890.0,
+      "baseline_top_reasons": [
+        {"reason": "futex_wait", "ms": 450.0},
+        {"reason": "io_schedule", "ms": 380.0},
+        {"reason": "mutex_lock", "ms": 220.0},
+        {"reason": "read_sync", "ms": 120.0},
+        {"reason": "other", "ms": 80.0}
+      ],
+      "optimized_top_reasons": [
+        {"reason": "futex_wait", "ms": 320.0},
+        {"reason": "io_schedule", "ms": 280.0},
+        {"reason": "mutex_lock", "ms": 150.0},
+        {"reason": "read_sync", "ms": 90.0},
+        {"reason": "other", "ms": 50.0}
+      ]
+    },
+    "exec": {
+      "baseline_exec_count": 12,
+      "optimized_exec_count": 8,
+      "baseline_top_commands": [
+        {"command": "python3", "count": 5},
+        {"command": "sh", "count": 4},
+        {"command": "cat", "count": 2},
+        {"command": "grep", "count": 1}
+      ],
+      "optimized_top_commands": [
+        {"command": "python3", "count": 4},
+        {"command": "sh", "count": 3},
+        {"command": "cat", "count": 1}
+      ]
+    },
+    "syscall_counts": {
+      "baseline": {
+        "futex": 1250,
+        "fsync": 45,
+        "openat": 230,
+        "read": 8900,
+        "write": 450
+      },
+      "optimized": {
+        "futex": 890,
+        "fsync": 32,
+        "openat": 180,
+        "read": 6500,
+        "write": 320
+      }
+    }
+  },
+  "impact": {
+    "inputs": {
+      "executions_per_day": 100,
+      "days_per_year": 250,
+      "cost_model": "infra",
+      "cost_per_hour_eur": 0.50,
+      "electricity_kwh_per_hour": 0.15,
+      "co2_kg_per_kwh": 0.475
+    },
+    "outputs": {
+      "time_saved_hours_per_year": 2.132,
+      "cost_saved_eur_per_year": 1.066,
+      "electricity_saved_kwh_per_year": 0.320,
+      "co2_avoided_kg_per_year": 0.152
+    }
+  },
+  "artifacts": {
+    "results_csv": "runner/results.csv",
+    "summary_json": "runner/summary.json",
+    "prometheus_url": "http://localhost:9091",
+    "grafana_url": "http://localhost:3000"
+  }
+}

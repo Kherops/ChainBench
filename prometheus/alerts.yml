@@ -1,0 +1,58 @@
+groups:
+  - name: chainbench_alerts
+    interval: 30s
+    rules:
+      - alert: PerformanceRegression
+        expr: |
+          chainbench_gain_percent < 5
+        for: 5m
+        labels:
+          severity: warning
+          component: benchmark
+        annotations:
+          summary: "Performance gain below threshold"
+          description: "Gain is {{ $value }}% for {{ $labels.impl }}/{{ $labels.variant }} (threshold: 5%)"
+
+      - alert: PerformanceDegradation
+        expr: |
+          chainbench_gain_percent < 0
+        for: 2m
+        labels:
+          severity: critical
+          component: benchmark
+        annotations:
+          summary: "Performance degradation detected"
+          description: "Negative gain of {{ $value }}% for {{ $labels.impl }}/{{ $labels.variant }}"
+
+      - alert: HighSchedulerLatency
+        expr: |
+          histogram_quantile(0.95, rate(chainbench_runqlat_microseconds_bucket[5m])) > 100
+        for: 5m
+        labels:
+          severity: warning
+          component: scheduler
+        annotations:
+          summary: "High CPU scheduler latency"
+          description: "p95 runqueue latency is {{ $value }}μs for {{ $labels.scenario }}"
+
+      - alert: HighIOLatency
+        expr: |
+          histogram_quantile(0.95, rate(chainbench_biolatency_microseconds_bucket[5m])) > 5000
+        for: 5m
+        labels:
+          severity: warning
+          component: io
+        annotations:
+          summary: "High I/O latency detected"
+          description: "p95 I/O latency is {{ $value }}μs for {{ $labels.scenario }}"
+
+      - alert: BenchmarkFailures
+        expr: |
+          rate(chainbench_runs_total{result="fail"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+          component: benchmark
+        annotations:
+          summary: "High benchmark failure rate"
+          description: "Failure rate is {{ $value | humanizePercentage }} for {{ $labels.impl }}/{{ $labels.variant }}"
