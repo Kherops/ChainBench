@@ -171,7 +171,7 @@ def save_results(
         'stability_enabled': config['stability_enabled'],
         'stability_mode': config['stability_mode'],
         'waited_seconds': config.get('waited_seconds', 0),
-        'cpu_affinity': config.get('cpu_affinity'),
+        'cpu_affinity': config.get('cpu_affinity') or 2,
     }
     
     # Save summary to JSON

@@ -197,7 +197,7 @@ def build_report(
                     'NUMEXPR_NUM_THREADS': '1'
                 }
             },
-            'cpu_affinity': runner_summary.get('cpu_affinity', 2),
+            'cpu_affinity': runner_summary.get('cpu_affinity') or 2,
             'impls': [
                 {'name': baseline_impl, 'variant': baseline_variant},
                 {'name': optimized_impl, 'variant': optimized_variant}

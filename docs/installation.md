@@ -29,7 +29,6 @@
 
 ```bash
 git clone https://github.com/Kherops/ChainBench.git
-cd Core_Cut
 ```
 
 ### 2. Install Python Dependencies
