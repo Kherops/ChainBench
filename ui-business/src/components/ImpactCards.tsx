@@ -1,21 +1,23 @@
 import { useState } from 'react'
 import { Clock, DollarSign, Zap, Leaf, Edit2, Check, X } from 'lucide-react'
-import type { ImpactInputs, ImpactOutputs } from '@/types/report'
+import type { Report, ImpactInputs } from '@/types/report'
 import { formatNumber, formatLargeNumber } from '@/utils/calculations'
 
 interface Props {
-  delta_ms: number
-  inputs: ImpactInputs
-  outputs: ImpactOutputs
-  onInputsChange: (inputs: ImpactInputs) => void
+  report: Report
+  impactInputs: ImpactInputs
+  onImpactInputsChange: (inputs: ImpactInputs) => void
 }
 
-export default function ImpactCards({ delta_ms, inputs, outputs, onInputsChange }: Props) {
+export default function ImpactCards({ report, impactInputs, onImpactInputsChange }: Props) {
+  const delta_ms = report.summary.delta_ms
+  const inputs = impactInputs
+  const outputs = report.impact.outputs
   const [isEditing, setIsEditing] = useState(false)
   const [editInputs, setEditInputs] = useState(inputs)
 
   const handleSave = () => {
-    onInputsChange(editInputs)
+    onImpactInputsChange(editInputs)
     setIsEditing(false)
   }
 

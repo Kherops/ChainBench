@@ -1,11 +1,12 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
-import type { Evidence } from '@/types/report'
+import type { Report } from '@/types/report'
 
 interface Props {
-  evidence: Evidence
+  report: Report
 }
 
-export default function EvidenceSection({ evidence }: Props) {
+export default function EvidenceSection({ report }: Props) {
+  const { evidence } = report
   if (!evidence.available) {
     return (
       <section className="bg-slate-800/50 rounded-xl border border-slate-700 p-6">
