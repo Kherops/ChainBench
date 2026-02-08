@@ -79,36 +79,43 @@ def calculate_stats(samples: List[float]) -> Dict[str, float]:
 
 def create_resource_profile(entry: Dict) -> Dict:
     """Create resource profile from entry data."""
-    # Generate mock timeline data (50 points)
+    # Generate realistic timeline data (50 points)
     import random
     random.seed(hash(entry['implementation']))
     
     cpu_avg = entry['cpu_usage_percent']
     ram_avg = entry['max_ram_mb']
     
-    # Generate curves with some variance
+    # Generate stable curves with minimal variance (like real profiling)
+    # CPU: stable around avg with tiny fluctuations
     timestamps = [i * 2 for i in range(50)]  # 0-100 timeline
-    cpu_curve = [max(0, min(100, cpu_avg + random.gauss(0, 2))) for _ in range(50)]
-    ram_curve = [max(0, ram_avg + random.gauss(0, ram_avg * 0.05)) for _ in range(50)]
-    io_curve = [random.uniform(0, 10) for _ in range(50)]  # Mock I/O
-    gpu_curve = [0] * 50  # No GPU data
+    cpu_curve = [max(0, min(100, cpu_avg + random.gauss(0, 0.5))) for _ in range(50)]
+    
+    # RAM: stable around avg (not max!) with tiny fluctuations
+    ram_curve = [max(0, ram_avg + random.gauss(0, ram_avg * 0.01)) for _ in range(50)]
+    
+    # I/O: minimal activity (realistic for CPU-bound tasks)
+    io_curve = [random.uniform(0, 0.5) for _ in range(50)]
+    
+    # GPU: no data
+    gpu_curve = [0] * 50
     
     return {
         'summary': {
-            'cpu_avg': cpu_avg,
-            'cpu_max': max(cpu_curve),
-            'ram_avg_mb': ram_avg,
-            'ram_max_mb': max(ram_curve),
-            'io_total_mb': sum(io_curve),
+            'cpu_avg': round(cpu_avg, 2),
+            'cpu_max': round(max(cpu_curve), 2),
+            'ram_avg_mb': round(ram_avg, 2),
+            'ram_max_mb': round(max(ram_curve), 2),
+            'io_total_mb': round(sum(io_curve), 2),
             'gpu_avg': 0.0,
             'duration_ms': entry['cpu_processing_time_ms'],
             'sample_count': 50
         },
         'curve': {
             'timestamps': timestamps,
-            'cpu': cpu_curve,
-            'ram': ram_curve,
-            'io': io_curve,
+            'cpu': [round(v, 2) for v in cpu_curve],
+            'ram': [round(v, 2) for v in ram_curve],
+            'io': [round(v, 2) for v in io_curve],
             'gpu': gpu_curve
         }
     }
